@@ -1,5 +1,5 @@
 # Project Title: Movie Recommended System
-LinkedIn Video: 
+LinkedIn Video: https://www.linkedin.com/feed/update/urn:li:activity:7200759098856935424/
 
 ![Screenshot (299)](https://github.com/Lavan1999/Project-8_MovieRecommendationSystem/assets/152668558/0ad6e1ca-5c37-4e03-a125-36d81c2107a4)
 

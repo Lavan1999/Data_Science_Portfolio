@@ -2,13 +2,13 @@ colab : https://colab.research.google.com/drive/1XocwmAE5I2O3-sNK-pnFqsszqPGAWlZ
 
 - Brain Tumor Detection Project Workflow
 ## 1. Project Overview
-Objective: Detect brain tumors using deep learning models with the highest possible accuracy due to the critical nature of medical diagnostics.
+- Objective: Detect brain tumors using deep learning models with the highest possible accuracy due to the critical nature of medical diagnostics.
 - Dataset: Medical images categorized as Positive (with tumor) and Negative (without tumor).
 ## 2. Data Preparation
-Dataset Structure:
+- Dataset Structure:
 The data is divided into three sets: Training (70%), Validation (15%), and Testing (15%).
 Images are organized in separate folders based on their labels.
-## Data Augmentation:
+- Data Augmentation:
 Applied techniques like zoom, shear, and horizontal flipping to enhance the model's ability to generalize.
 ## 3. Initial Model Development
 - Model Architecture:

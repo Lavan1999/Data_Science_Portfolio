@@ -20,9 +20,9 @@ The model achieved a 93% accuracy on the test data.
 - Issue:
 Although 93% is generally high, the 7% error margin is not acceptable for medical diagnostics, where precision is paramount.
 ## 4. Model Improvement
-Switch to Transfer Learning:
+- Switch to Transfer Learning:
 Recognizing the limitations of the initial model, a MobileNet-based model was adopted. MobileNet is a pre-trained model known for its efficiency in handling image classification tasks.
-Model Architecture Adjustments:
+- Model Architecture Adjustments:
 The MobileNet layers were used as the base, with additional layers added for classification. The base layers were frozen to retain learned features, and new dense layers were trained on the brain tumor dataset.
 ## 5. Training and Optimization
 - Training Strategy:

@@ -1,5 +1,8 @@
 colab : https://colab.research.google.com/drive/1XocwmAE5I2O3-sNK-pnFqsszqPGAWlZO?usp=sharing
 
+![image](https://github.com/user-attachments/assets/892dd97d-9b0a-402f-9b61-063a6dca8a6c)
+
+
 - Brain Tumor Detection Project Workflow
 ## 1. Project Overview
 - Objective: Detect brain tumors using deep learning models with the highest possible accuracy due to the critical nature of medical diagnostics.

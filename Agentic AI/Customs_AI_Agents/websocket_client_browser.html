@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDM Agent WebSocket Client</title>
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        #root {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .app-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .connection-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .connection-status.disconnected {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .connection-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .error-banner {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .progress-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .progress-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .progress-item.error {
+            border-left-color: #dc3545;
+        }
+        
+        .progress-item.success {
+            border-left-color: #28a745;
+        }
+        
+        .progress-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .progress-content {
+            flex: 1;
+        }
+        
+        .progress-message {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .progress-timestamp {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .progress-details {
+            font-size: 14px;
+            color: #495057;
+            margin-top: 8px;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .result-container {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .result-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .result-summary div {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .risk-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .risk-card {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .risk-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .decision-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        .decision-badge.accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .decision-badge.correction {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .decision-badge.declined {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .feedback {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.5;
+        }
+        
+        .correction-info {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function CDMAgentProcessor() {
+            const [connectionStatus, setConnectionStatus] = useState('disconnected');
+            const [progress, setProgress] = useState([]);
+            const [result, setResult] = useState(null);
+            const [error, setError] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+            
+            const wsRef = useRef(null);
+
+            const connectAndProcess = (declarationId, riskProfiles) => {
+                // Reset state
+                setProgress([]);
+                setResult(null);
+                setError(null);
+                setIsProcessing(true);
+                
+                // Create WebSocket connection
+                const ws = new WebSocket('ws://localhost:8000/ws/cdm_agent');
+                wsRef.current = ws;
+                
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    setConnectionStatus('connected');
+                    
+                    // Send request
+                    const payload = {
+                        declaration_id: declarationId,
+                        risk_profiles: riskProfiles
+                    };
+                    
+                    ws.send(JSON.stringify(payload));
+                };
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    
+                    // Handle ai-update-progress-bar events
+                    if (data.event === 'ai-update-progress-bar') {
+                        handleProgressBarUpdate(data);
+                        return;
+                    }
+                    
+                    switch (data.type) {
+                        case 'started':
+                            addProgress('info', data.message, data);
+                            break;
+                        
+                        case 'progress':
+                            handleProgressMessage(data);
+                            break;
+                        
+                        case 'complete':
+                            setResult(data.result);
+                            setIsProcessing(false);
+                            addProgress('success', 'Processing completed successfully!', data);
+                            ws.close();
+                            break;
+                        
+                        case 'error':
+                            setError(data.message);
+                            setIsProcessing(false);
+                            addProgress('error', data.message, data);
+                            ws.close();
+                            break;
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    setError('Connection error occurred. Make sure the server is running.');
+                    setConnectionStatus('error');
+                    setIsProcessing(false);
+                };
+                
+                ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    setConnectionStatus('disconnected');
+                    setIsProcessing(false);
+                };
+            };
+            
+            const handleProgressMessage = (data) => {
+                const { stage, message, data: progressData } = data;
+                
+                const iconMap = {
+                    fetching_declaration: '🔍',
+                    declaration_fetched: '✅',
+                    processing_risk: '🎯',
+                    retrieve: '📊',
+                    execute: '⚙️',
+                    decide: '🤔',
+                    decision_made: '✅',
+                    completed: '🎉',
+                    error: '❌'
+                };
+                
+                addProgress(
+                    stage === 'error' ? 'error' : stage === 'completed' ? 'success' : 'info',
+                    message,
+                    progressData,
+                    iconMap[stage] || '📌'
+                );
+            };
+            
+            const handleProgressBarUpdate = (data) => {
+                const { current_agent, action_type, next_agent, event_type, details } = data;
+                
+                const agentIcons = {
+                    'CDM Decision Agent': '🎯',
+                    'CDM Executor Agent': '⚙️',
+                    'Tariff Verifier Agent': '📋',
+                    'Valuation Verifier Agent': '💰',
+                    'Inspection Verifier Agent': '🔍',
+                    'Declaration Retriever': '📄',
+                    'Risk Processing': '🔍',
+                    'Client Application': '✅',
+                    'Next Risk': '➡️',
+                    'Finalization': '🏁'
+                };
+                
+                const icon = agentIcons[current_agent] || '🔵';
+                const message = `[${current_agent}] ${action_type}${next_agent ? ` → ${next_agent}` : ''}`;
+                
+                const isComplete = event_type && (
+                    event_type.includes('Successfully') || 
+                    event_type.includes('Completed') ||
+                    event_type === 'All Risks Processed Successfully'
+                );
+                
+                addProgress(
+                    isComplete ? 'success' : 'info',
+                    message,
+                    {
+                        ...details,
+                        current_agent,
+                        action_type,
+                        next_agent,
+                        event_type
+                    },
+                    icon
+                );
+            };
+            
+            const addProgress = (type, message, data = {}, icon = '📌') => {
+                const timestamp = new Date().toLocaleTimeString();
+                setProgress(prev => [...prev, { 
+                    type, 
+                    message, 
+                    data, 
+                    icon, 
+                    timestamp 
+                }]);
+            };
+            
+            const handleSubmit = () => {
+                const declarationId = 'ee21ef41-f2a4-455c-8b8b-9d31cae8c2db';
+                const riskProfiles = [
+                    {
+                            "risk_id": "77",
+                            "risk_type": "Tariff",
+                            "risk_description": "Verify description matches HS code",
+                            "risk_confidence_score": "High",
+                            "risk_recommended_action": "Verify Description classification"
+                        },
+                        {
+                            "risk_id": "79",
+                            "risk_type": "VALUATION",
+                            "risk_description": "Goods value seems undervalued",
+                            "risk_confidence_score": "Medium",
+                            "risk_recommended_action": "Require valuation review"
+                        },
+                        {
+                            "risk_id": "80",
+                            "risk_type": "INSPECTION",
+                            "risk_description": "Verify goods description for restricted or prohibited items",
+                            "risk_confidence_score": "Medium",
+                            "risk_recommended_action": "Perform inspection screening"
+                            }
+                ];
+                
+                connectAndProcess(declarationId, riskProfiles);
+            };
+            
+            const cancelProcessing = () => {
+                if (wsRef.current) {
+                    wsRef.current.close();
+                    setIsProcessing(false);
+                }
+            };
+            
+            // Cleanup on unmount
+            useEffect(() => {
+                return () => {
+                    if (wsRef.current) {
+                        wsRef.current.close();
+                    }
+                };
+            }, []);
+            
+            return (
+                <div className="app-container">
+                    <div className="header">
+                        <h1>CDM Agent WebSocket Client</h1>
+                        <div className={`connection-status ${connectionStatus}`}>
+                            {connectionStatus === 'connected' && '🟢 Connected'}
+                            {connectionStatus === 'disconnected' && '⚪ Disconnected'}
+                            {connectionStatus === 'error' && '🔴 Error'}
+                        </div>
+                    </div>
+                    
+                    <div className="controls">
+                        <button 
+                            onClick={handleSubmit} 
+                            disabled={isProcessing}
+                            className="btn-primary"
+                        >
+                            {isProcessing ? (
+                                <>
+                                    <span className="spinner"></span> Processing...
+                                </>
+                            ) : 'Start Processing'}
+                        </button>
+                        
+                        {isProcessing && (
+                            <button 
+                                onClick={cancelProcessing}
+                                className="btn-danger"
+                            >
+                                Cancel
+                            </button>
+                        )}
+                    </div>
+                    
+                    {error && (
+                        <div className="error-banner">
+                            ❌ {error}
+                        </div>
+                    )}
+                    
+                    <div className="section">
+                        <h2>Processing Progress</h2>
+                        <div className="progress-container">
+                            {progress.length === 0 ? (
+                                <p style={{textAlign: 'center', color: '#6c757d'}}>
+                                    Click "Start Processing" to begin
+                                </p>
+                            ) : (
+                                progress.map((item, index) => (
+                                    <div key={index} className={`progress-item ${item.type}`}>
+                                        <div className="progress-icon">{item.icon}</div>
+                                        <div className="progress-content">
+                                            {/* Show stage (if present) above the message */}
+                                            {item.data && item.data.stage && (
+                                                <div className="progress-message" style={{fontWeight: 700, color: '#2d2d2d'}}>
+                                                    {item.data.stage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                </div>
+                                            )}
+                                            <div className="progress-message">{item.message}</div>
+                                            {/* <div className="progress-timestamp">{item.timestamp}</div> */}
+                                            {(item.data.risk_id || item.data.current_agent) && (
+                                                <div className="progress-details">
+                                                    {item.data.risk_id && `Risk ID: ${item.data.risk_id}`}
+                                                    {item.data.risk_type && ` | Type: ${item.data.risk_type}`}
+                                                    {item.data.event_type && (
+                                                        <div style={{marginTop: '5px'}}>
+                                                            <strong>Event:</strong> {item.data.event_type}
+                                                        </div>
+                                                    )}
+                                                    {item.data.next_agent && (
+                                                        <div style={{marginTop: '5px'}}>
+                                                            <strong>Next Agent:</strong> {item.data.next_agent}
+                                                        </div>
+                                                    )}
+                                                    {item.data.decision && (
+                                                        <div style={{marginTop: '5px'}}>
+                                                            <strong>Decision:</strong> {item.data.decision}
+                                                        </div>
+                                                    )}
+                                                    {item.data.hs_code && (
+                                                        <div style={{marginTop: '5px'}}>
+                                                            <strong>HS Code:</strong> {item.data.hs_code}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                    
+                    {result && (
+                        <div className="section">
+                            <h2>Final Results</h2>
+                            <div className="result-container">
+                                <div className="result-summary">
+                                    <div>Declaration: {result.declaration_id}</div>
+                                    <div>Risks Processed: {result.results?.length || 0}</div>
+                                </div>
+                                
+                                <div className="risk-results">
+                                    {result.results?.map((riskResult, index) => (
+                                        <div key={index} className="risk-card">
+                                            <h4>Risk: {riskResult.risk_id}</h4>
+                                            
+                                            <div className={`decision-badge ${riskResult.output.cdm_decision?.toLowerCase().replace(' ', '-')}`}>
+                                                {riskResult.output.cdm_decision}
+                                            </div>
+                                            
+                                            <div className="feedback">
+                                                {riskResult.output.cdm_feedback}
+                                            </div>
+                                            
+                                            {riskResult.output.failed_field && (
+                                                <div className="correction-info">
+                                                    <strong>Failed Field:</strong> {riskResult.output.failed_field}<br />
+                                                    <strong>Correct Value:</strong> {riskResult.output.correct_value}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CDMAgentProcessor />);
+    </script>
+</body>
+</html>

@@ -63,6 +63,7 @@ Create a `.env` file in the project root.
 LLM_API_KEY=YOUR_API_KEY
 LLM_BASE_URL=YOUR_LLM_BASE_URL
 LLM_MODEL=YOUR_MODEL_NAME
+MOCK_API_URL=http://127.0.0.1:8001
 ```
 
 ---

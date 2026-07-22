@@ -19,5 +19,5 @@ requests==2.32.4
 python-dotenv==1.1.1
 
 sqlalchemy==2.0.42
-
+streamlit
 httpx==0.28.1

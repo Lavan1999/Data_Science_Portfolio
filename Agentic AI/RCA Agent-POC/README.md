@@ -183,7 +183,7 @@ http://localhost:8501
 
 ---
 
-## Root Cause Analysis Result
+## Root Cause Analysis, Evidence Result
 
 <img width="945" height="539" alt="image" src="https://github.com/user-attachments/assets/4964335e-3c23-46a5-995b-576265452bd1" />
 
